@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
@@ -31,8 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -62,7 +65,7 @@ fun LovePlayApp() {
 
     var leftName by rememberSaveable { mutableStateOf("Aku") }
     var rightName by rememberSaveable { mutableStateOf("Kamu") }
-    var accentIndex by rememberSaveable { mutableStateOf(2) } // default: pink/purple-ish
+    var accentIndex by rememberSaveable { mutableStateOf(0) } // default: pink
 
     // Load from SharedPreferences once
     LaunchedEffect(Unit) {
@@ -73,16 +76,29 @@ fun LovePlayApp() {
 
     LovePlayTheme(accentIndex = accentIndex) {
         val nav = rememberNavController()
-        Scaffold(
-            bottomBar = { LoveBottomBar(nav) }
-        ) { inner ->
-            NavHost(
-                navController = nav,
-                startDestination = Screen.Home.route,
-                modifier = Modifier.padding(inner)
-            ) {
-                composable(Screen.Home.route) {
-                    HomeScreen(
+        val scheme = MaterialTheme.colorScheme
+        val bgGradient = remember(scheme.primary, scheme.secondary) {
+            Brush.verticalGradient(
+                colors = listOf(
+                    scheme.primary.copy(alpha = 0.15f),
+                    scheme.secondary.copy(alpha = 0.08f),
+                    Color.Transparent
+                )
+            )
+        }
+        Box(modifier = Modifier.fillMaxSize().background(bgGradient)) {
+            Scaffold(
+                containerColor = Color.Transparent,
+                bottomBar = { LoveBottomBar(nav) }
+            ) { inner ->
+                Box(modifier = Modifier.padding(inner).fillMaxSize()) {
+                    NavHost(
+                        navController = nav,
+                        startDestination = Screen.Home.route,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        composable(Screen.Home.route) {
+                            HomeScreen(
                         leftName = leftName,
                         rightName = rightName,
                         onGoWheel = { nav.navigate(Screen.Wheel.route) },
@@ -167,13 +183,19 @@ private fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Header romantis
         Text(
-            text = "Hai $leftName ❤ $rightName!",
-            style = MaterialTheme.typography.headlineSmall,
+            text = "LovePlay ❤",
+            style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Pilih permainan untuk memulai ",
+            text = "Hai $leftName ❤ $rightName!",
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = "Pilih permainan untuk memulai",
             style = MaterialTheme.typography.bodyMedium
         )
         Spacer(Modifier.height(8.dp))
@@ -201,6 +223,11 @@ private fun HomeScreen(
                 Text("- Truth or Dare untuk tantangan santai.")
             }
         }
+
+        // Dorong kredit ke bagian bawah layar
+        Spacer(Modifier.weight(1f))
+
+        CreditChip(modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -523,6 +550,44 @@ private fun SettingsScreen(
         }
         Spacer(Modifier.height(8.dp))
         Button(onClick = { onSave(ln, rn, ai) }, modifier = Modifier.fillMaxWidth()) { Text("Simpan") }
+    }
+}
+
+@Composable
+private fun CreditChip(modifier: Modifier = Modifier) {
+    val gradient = Brush.horizontalGradient(
+        listOf(
+            Color(0xFFFF8FAB), // soft pink
+            Color(0xFFE91E63), // pink
+            Color(0xFF9C27B0)  // purple
+        )
+    )
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+    ) {
+        Box(
+            modifier = Modifier
+                .background(gradient)
+                .padding(vertical = 12.dp, horizontal = 18.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(Icons.Default.Favorite, contentDescription = null, tint = Color.White)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Dibuat oleh M. Samjaya",
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)
+                )
+                Spacer(Modifier.width(8.dp))
+                Icon(Icons.Default.Favorite, contentDescription = null, tint = Color.White)
+            }
+        }
     }
 }
 
