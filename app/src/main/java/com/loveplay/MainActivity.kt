@@ -135,6 +135,7 @@ fun LovePlayApp() {
         }
     }
 }
+}
 
 private sealed class Screen(val route: String, val label: String, val icon: @Composable () -> Unit) {
     object Home : Screen("home", "Beranda", { Icon(Icons.Default.Home, contentDescription = null) })
